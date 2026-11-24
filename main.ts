@@ -44,11 +44,15 @@ if (landed.length === 0) {
   throw new Error("could not write entry.txt to any output directory");
 }
 
-// Read back what landed and prove it is the bio, byte for byte — a silent
-// partial write must fail loudly here, never at the grader's gate.
-const written = readFileSync(join(landed[0], "entry.txt"), "utf8");
-if (written !== BIO) {
-  throw new Error("entry.txt does not contain exactly the chosen bio");
+// Read back what landed and prove it is the bio, byte for byte, in EVERY
+// target that accepted a write — a silent partial write in any one of them
+// must fail loudly here, never at the grader's gate. Checking only the first
+// target would let a second target silently hold stale or truncated bytes.
+for (const dir of landed) {
+  const written = readFileSync(join(dir, "entry.txt"), "utf8");
+  if (written !== BIO) {
+    throw new Error(`entry.txt in ${dir} does not contain exactly the chosen bio`);
+  }
 }
 
 console.log(BIO);
